@@ -7,8 +7,7 @@
 
 A feature-rich web application for managing and exploring user profiles with integrated maps functionality.
 
-![App Preview](https://i.imgur.com/JqkXaPm.png) <!-- Replace with your actual screenshot URL -->
-
+![Live  Preview] [https://profile-manager-seven.vercel.app/]
 ## ✨ Features
 
 ### 👥 Profile Management
