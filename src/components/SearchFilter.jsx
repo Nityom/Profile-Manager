@@ -73,6 +73,8 @@ const SearchFilter = ({ onSearch, onFilter }) => {
               <option value="Hyderabad">Hyderabad</option>
               <option value="Chennai">Chennai</option>
               <option value="Kolkata">Kolkata</option>
+              <option value="Pune">Pune</option>
+              <option value="Jaipur">Jaipur</option>
               <option value="Jhanjharpur">Jhanjharpur</option>
             </select>
           </div>
