@@ -21,11 +21,10 @@ const HomePage = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [locationFilter, setLocationFilter] = useState('');
 
-  // Initialize and filter profiles
   useEffect(() => {
     let results = profiles;
     
-    // Apply search filter
+  
     if (searchTerm) {
       results = results.filter(profile =>
         profile.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -33,7 +32,7 @@ const HomePage = () => {
       );
     }
     
-    // Apply location filter
+  
     if (locationFilter) {
       results = results.filter(profile =>
         profile.address.toLowerCase() === locationFilter.toLowerCase()

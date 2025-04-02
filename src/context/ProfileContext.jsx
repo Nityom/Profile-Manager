@@ -9,7 +9,7 @@ export const ProfileProvider = ({ children }) => {
   const [selectedProfile, setSelectedProfile] = useState(null);
   const [selectedLocation, setSelectedLocation] = useState(null);
 
-  // Indian cities with coordinates
+
   const indianCities = [
     { name: "Mumbai", latitude: 19.0760, longitude: 72.8777 },
     { name: "Delhi", latitude: 28.7041, longitude: 77.1025 },
@@ -25,31 +25,31 @@ export const ProfileProvider = ({ children }) => {
   useEffect(() => {
     const fetchProfiles = async () => {
       try {
-        // Check if profiles exist in localStorage
+  
         const storedProfiles = localStorage.getItem('profiles');
         
         if (storedProfiles) {
-          // Use stored profiles if they exist
+         
           setProfiles(JSON.parse(storedProfiles));
         } else {
-          // Otherwise use default dummy profiles
+ 
           const dummyProfiles = [
             {
               id: 1,
-              name: "Rahul Sharma",
-              photo: "https://randomuser.me/api/portraits/men/1.jpg",
-              description: "Software Engineer with 5 years of experience",
-              address: "Mumbai",
-              contact: "rahul.sharma@example.com",
+              name: "Nityom Tikhe",
+              photo: "https://avatars.githubusercontent.com/u/112824495?v=4",
+              description: "Software Engineer with 3 years of experience",
+              address: "Pune",
+              contact: "nityomtikherr@gmail.com",
               interests: ["Coding", "Reading", "Traveling"]
             },
             {
               id: 2,
-              name: "Priya Patel",
-              photo: "https://randomuser.me/api/portraits/women/2.jpg",
+              name: "Atharva Joshi",
+              photo: "https://avatars.githubusercontent.com/u/114106490?v=4",
               description: "UX Designer passionate about creating beautiful interfaces",
               address: "Delhi",
-              contact: "priya.patel@example.com",
+              contact: "atharva@gmail;.com",
               interests: ["Design", "Photography", "Yoga"]
             }
           ];
@@ -80,14 +80,14 @@ export const ProfileProvider = ({ children }) => {
     }
   }, []);
 
-  // Update localStorage whenever profiles change
+
   useEffect(() => {
     if (!loading) {
       localStorage.setItem('profiles', JSON.stringify(profiles));
     }
   }, [profiles, loading]);
 
-  // Update localStorage when selectedProfile changes
+  
   useEffect(() => {
     if (selectedProfile) {
       localStorage.setItem('selectedProfile', JSON.stringify(selectedProfile));
@@ -96,7 +96,6 @@ export const ProfileProvider = ({ children }) => {
     }
   }, [selectedProfile]);
 
-  // Update localStorage when selectedLocation changes
   useEffect(() => {
     if (selectedLocation) {
       localStorage.setItem('selectedLocation', JSON.stringify(selectedLocation));

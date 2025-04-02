@@ -3,11 +3,11 @@
 ![React](https://img.shields.io/badge/React-18.2.0-blue)
 ![TailwindCSS](https://img.shields.io/badge/Tailwind_CSS-3.3.0-blueviolet)
 ![React Router](https://img.shields.io/badge/React_Router-6.14.0-orange)
-![License](https://img.shields.io/badge/License-MIT-green)
+
 
 A feature-rich web application for managing and exploring user profiles with integrated maps functionality.
 
-![Live  Preview] [https://profile-manager-seven.vercel.app/]
+Live  Preview: https://profile-manager-seven.vercel.app
 ## ✨ Features
 
 ### 👥 Profile Management
@@ -34,14 +34,14 @@ A feature-rich web application for managing and exploring user profiles with int
 
 ## 🛠️ Tech Stack
 
-| Category        | Technology           |
-|----------------|---------------------|
-| Frontend       | React 18            |
-| Styling        | Tailwind CSS 3      |
-| State Management | Context API        |
-| Routing        | React Router 6      |
-| Maps           | Google Maps Embed   |
-| Build Tool     | Vite                |
+| Category         | Technology          |
+|------------------|---------------------|
+| Frontend         | React 18            |
+| Styling          | Tailwind CSS 3      |
+| State Management | Context API         |
+| Routing          | React Router 6      |
+| Maps             | Google Maps Embed   |
+| Build Tool       | Vite                |
 
 ## 🚀 Getting Started
 
@@ -52,7 +52,7 @@ A feature-rich web application for managing and exploring user profiles with int
 ### Installation
 1. Clone the repository:
    ```bash
-   git clone https://github.com/yourusername/profile-explorer.git
+   git clone https://github.com/Nityom/Profile-Manager.git
    cd profile-explorer
 
 2. Install dependencies
@@ -62,3 +62,5 @@ A feature-rich web application for managing and exploring user profiles with int
 3. Start development server:
      ```bash
      npm run dev
+
+4. Ready to go

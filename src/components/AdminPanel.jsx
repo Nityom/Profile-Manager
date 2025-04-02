@@ -1,4 +1,4 @@
-import { useContext, useState } from 'react';
+import { useContext, useState, useEffect } from 'react';
 import { ProfileContext } from '../context/ProfileContext';
 import Toast from './Toast';
 import useProfiles from '../hooks/useProfiles';
@@ -6,6 +6,7 @@ import useProfiles from '../hooks/useProfiles';
 const AdminPanel = () => {
   const { profiles, addProfile, updateProfile, deleteProfile } = useContext(ProfileContext);
   const { handleImageUpload } = useProfiles();
+  
   const [formData, setFormData] = useState({
     id: '',
     name: '',
@@ -15,11 +16,17 @@ const AdminPanel = () => {
     contact: '',
     interests: ''
   });
-  const [imageFile, setImageFile] = useState(null);
-  const [uploadType, setUploadType] = useState('url'); // 'url' or 'file'
-  const [isEditing, setIsEditing] = useState(false);
-  const [toast, setToast] = useState({ show: false, message: '', type: 'success' });
   
+  const [imageFile, setImageFile] = useState(null);
+  const [uploadType, setUploadType] = useState('url');
+  const [isEditing, setIsEditing] = useState(false);
+  const [toast, setToast] = useState({ 
+    show: false, 
+    message: '', 
+    type: 'info' 
+  });
+  const [windowWidth, setWindowWidth] = useState(window.innerWidth);
+
   const indianCities = [
     { name: "Mumbai", latitude: 19.0760, longitude: 72.8777 },
     { name: "Delhi", latitude: 28.7041, longitude: 77.1025 },
@@ -32,32 +39,27 @@ const AdminPanel = () => {
     { name: "Jhanjharpur", latitude: 26.2647, longitude: 86.2799 }
   ];
 
+  useEffect(() => {
+    const handleResize = () => setWindowWidth(window.innerWidth);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    setFormData({
-      ...formData,
-      [name]: value
-    });
+    setFormData(prev => ({ ...prev, [name]: value }));
   };
 
   const handleImageInputChange = async (e) => {
-    const file = e.target.files[0];
-    setImageFile(file);
-    
-    if (file) {
-      try {
-        const preview = URL.createObjectURL(file);
-        setFormData({
-          ...formData,
-          photoPreview: preview
-        });
-      } catch (error) {
-        setToast({
-          show: true,
-          message: `Error previewing image: ${error.message}`,
-          type: 'error'
-        });
-      }
+    try {
+      const file = e.target.files[0];
+      if (!file) return;
+
+      setImageFile(file);
+      const preview = URL.createObjectURL(file);
+      setFormData(prev => ({ ...prev, photoPreview: preview }));
+    } catch (error) {
+      showToast(`Error previewing image: ${error.message}`);
     }
   };
 
@@ -81,38 +83,15 @@ const AdminPanel = () => {
 
       if (isEditing) {
         updateProfile(parseInt(formData.id), profileData);
-        setToast({
-          show: true,
-          message: `Profile for ${formData.name} updated successfully!`,
-          type: 'success'
-        });
+        showToast(`Profile updated successfully`, 'success');
       } else {
         addProfile(profileData);
-        setToast({
-          show: true,
-          message: `New profile for ${formData.name} added successfully!`,
-          type: 'success'
-        });
+        showToast(`New profile added successfully`, 'success');
       }
 
-      setFormData({
-        id: '',
-        name: '',
-        photo: '',
-        description: '',
-        address: '',
-        contact: '',
-        interests: ''
-      });
-      setImageFile(null);
-      setUploadType('url');
-      setIsEditing(false);
+      resetForm();
     } catch (error) {
-      setToast({
-        show: true,
-        message: `Error: ${error.message || 'Something went wrong'}`,
-        type: 'error'
-      });
+      showToast(error.message || 'Failed to save profile', 'error');
     }
   };
 
@@ -127,181 +106,219 @@ const AdminPanel = () => {
       interests: profile.interests.join(', ')
     });
     
-    if (profile.photo.startsWith('data:image')) {
-      setUploadType('file');
-    } else {
-      setUploadType('url');
-    }
-    
+    setUploadType(profile.photo.startsWith('data:image') ? 'file' : 'url');
     setIsEditing(true);
   };
 
-  const hideToast = () => {
-    setToast({ ...toast, show: false });
+  const handleDelete = (profile) => {
+    if (window.confirm(`Delete ${profile.name}?`)) {
+      deleteProfile(profile.id);
+      showToast(`Profile deleted`, 'delete');
+    }
   };
 
+  const showToast = (message, type = 'info') => {
+    setToast({ show: true, message, type });
+    setTimeout(() => setToast(prev => ({ ...prev, show: false })), 3000);
+  };
+
+  const resetForm = () => {
+    setFormData({
+      id: '',
+      name: '',
+      photo: '',
+      description: '',
+      address: '',
+      contact: '',
+      interests: ''
+    });
+    setImageFile(null);
+    setUploadType('url');
+    setIsEditing(false);
+  };
+
+  const textareaRows = windowWidth > 768 ? 3 : 2;
+
   return (
-    <div className="space-y-6 p-6">
+    <div className="space-y-6 p-4 md:p-6">
       {toast.show && (
         <Toast 
           message={toast.message} 
           type={toast.type} 
-          onClose={hideToast} 
+          onClose={() => setToast(prev => ({ ...prev, show: false }))} 
         />
       )}
       
-      <div className="rounded-lg border border-gray-200 p-6">
-        <h2 className="text-lg font-medium mb-4">{isEditing ? 'Edit Profile' : 'Add New Profile'}</h2>
+      <div className="rounded-lg border border-gray-300 p-4 md:p-6 max-w-4xl mx-auto bg-white">
+        <h2 className="text-lg md:text-xl font-medium mb-4">
+          {isEditing ? 'Edit Profile' : 'Add New Profile'}
+        </h2>
+        
         <form onSubmit={handleSubmit} className="space-y-4">
-          {isEditing && (
-            <div>
-              <label className="block text-sm font-medium mb-1">ID</label>
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            {isEditing && (
+              <>
+                <label className="md:col-span-1 text-sm md:text-base font-medium self-center">
+                  ID
+                </label>
+                <div className="md:col-span-3">
+                  <input
+                    type="text"
+                    name="id"
+                    value={formData.id}
+                    readOnly
+                    className="w-full p-2 text-sm md:text-base border border-gray-300 rounded bg-gray-100"
+                  />
+                </div>
+              </>
+            )}
+
+            <label className="md:col-span-1 text-sm md:text-base font-medium self-center">
+              Name
+            </label>
+            <div className="md:col-span-3">
               <input
                 type="text"
-                name="id"
-                value={formData.id}
-                readOnly
-                className="w-full p-2 border border-gray-300 rounded-md bg-gray-50"
+                name="name"
+                value={formData.name}
+                onChange={handleInputChange}
+                required
+                className="w-full p-2 text-sm md:text-base border border-gray-300 rounded"
               />
-            </div>
-          )}
-          <div>
-            <label className="block text-sm font-medium mb-1">Name</label>
-            <input
-              type="text"
-              name="name"
-              value={formData.name}
-              onChange={handleInputChange}
-              required
-              className="w-full p-2 border border-gray-300 rounded-md"
-            />
-          </div>
-          
-          <div>
-            <label className="block text-sm font-medium mb-2">Photo</label>
-            <div className="flex space-x-2 mb-3">
-              <button 
-                type="button"
-                onClick={() => setUploadType('url')}
-                className={`px-3 py-1 rounded text-sm border ${uploadType === 'url' ? 'bg-black text-white' : 'bg-white border-gray-300'}`}
-              >
-                Use URL
-              </button>
-              <button 
-                type="button"
-                onClick={() => setUploadType('file')}
-                className={`px-3 py-1 rounded text-sm border ${uploadType === 'file' ? 'bg-black text-white' : 'bg-white border-gray-300'}`}
-              >
-                Upload File
-              </button>
             </div>
 
-            {uploadType === 'url' ? (
-              <input
-                type="url"
-                name="photo"
-                value={formData.photo}
-                onChange={handleInputChange}
-                placeholder="https://example.com/image.jpg"
-                required={uploadType === 'url'}
-                className="w-full p-2 border border-gray-300 rounded-md"
-              />
-            ) : (
-              <div className="space-y-2">
-                <input
-                  type="file"
-                  accept="image/*"
-                  onChange={handleImageInputChange}
-                  required={uploadType === 'file' && !formData.photo?.startsWith('data:image')}
-                  className="w-full p-2 border border-gray-300 rounded-md"
-                />
-                {(formData.photoPreview || formData.photo?.startsWith('data:image')) && (
-                  <div className="mt-2">
-                    <p className="text-sm text-gray-500 mb-1">Preview:</p>
-                    <img 
-                      src={formData.photoPreview || formData.photo} 
-                      alt="Preview" 
-                      className="h-20 w-20 object-cover rounded-md border border-gray-300" 
-                    />
-                  </div>
-                )}
+            <label className="md:col-span-1 text-sm md:text-base font-medium self-center">
+              Photo
+            </label>
+            <div className="md:col-span-3 space-y-2">
+              <div className="flex space-x-2">
+                <button 
+                  type="button"
+                  onClick={() => setUploadType('url')}
+                  className={`px-3 py-1 text-xs md:text-sm rounded border ${
+                    uploadType === 'url' ? 'bg-gray-800 text-white' : 'bg-white border-gray-300'
+                  }`}
+                >
+                  {windowWidth > 768 ? 'Use URL' : 'URL'}
+                </button>
+                <button 
+                  type="button"
+                  onClick={() => setUploadType('file')}
+                  className={`px-3 py-1 text-xs md:text-sm rounded border ${
+                    uploadType === 'file' ? 'bg-gray-800 text-white' : 'bg-white border-gray-300'
+                  }`}
+                >
+                  {windowWidth > 768 ? 'Upload File' : 'Upload'}
+                </button>
               </div>
-            )}
+
+              {uploadType === 'url' ? (
+                <input
+                  type="url"
+                  name="photo"
+                  value={formData.photo}
+                  onChange={handleInputChange}
+                  placeholder="https://example.com/photo.jpg"
+                  required={uploadType === 'url'}
+                  className="w-full p-2 text-sm md:text-base border border-gray-300 rounded mt-2"
+                />
+              ) : (
+                <div className="space-y-2 mt-2">
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={handleImageInputChange}
+                    required={uploadType === 'file' && !formData.photo?.startsWith('data:image')}
+                    className="w-full p-1 md:p-2 text-xs md:text-sm border border-gray-300 rounded"
+                  />
+                  {(formData.photoPreview || formData.photo?.startsWith('data:image')) && (
+                    <div className="mt-2 flex items-center space-x-4">
+                      <p className="text-xs md:text-sm text-gray-600">Preview:</p>
+                      <img 
+                        src={formData.photoPreview || formData.photo} 
+                        alt="Preview" 
+                        className="h-16 w-16 md:h-20 md:w-20 object-cover rounded border border-gray-300" 
+                      />
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+
+            <label className="md:col-span-1 text-sm md:text-base font-medium self-center">
+              Description
+            </label>
+            <div className="md:col-span-3">
+              <textarea
+                name="description"
+                value={formData.description}
+                onChange={handleInputChange}
+                required
+                rows={textareaRows}
+                className="w-full p-2 text-sm md:text-base border border-gray-300 rounded"
+              ></textarea>
+            </div>
+
+            <label className="md:col-span-1 text-sm md:text-base font-medium self-center">
+              Address
+            </label>
+            <div className="md:col-span-3">
+              <select
+                name="address"
+                value={formData.address}
+                onChange={handleInputChange}
+                required
+                className="w-full p-2 text-sm md:text-base border border-gray-300 rounded"
+              >
+                <option value="">Select city</option>
+                {indianCities.map(city => (
+                  <option key={city.name} value={city.name}>{city.name}</option>
+                ))}
+              </select>
+            </div>
+
+            <label className="md:col-span-1 text-sm md:text-base font-medium self-center">
+              Email
+            </label>
+            <div className="md:col-span-3">
+              <input
+                type="email"
+                name="contact"
+                value={formData.contact}
+                onChange={handleInputChange}
+                required
+                className="w-full p-2 text-sm md:text-base border border-gray-300 rounded"
+              />
+            </div>
+
+            <label className="md:col-span-1 text-sm md:text-base font-medium self-center">
+              Interests
+            </label>
+            <div className="md:col-span-3">
+              <input
+                type="text"
+                name="interests"
+                value={formData.interests}
+                onChange={handleInputChange}
+                placeholder="Separate with commas"
+                required
+                className="w-full p-2 text-sm md:text-base border border-gray-300 rounded"
+              />
+            </div>
           </div>
-          
-          <div>
-            <label className="block text-sm font-medium mb-1">Description</label>
-            <textarea
-              name="description"
-              value={formData.description}
-              onChange={handleInputChange}
-              required
-              className="w-full p-2 border border-gray-300 rounded-md"
-              rows="3"
-            ></textarea>
-          </div>
-          <div>
-            <label className="block text-sm font-medium mb-1">Address (City)</label>
-            <select
-              name="address"
-              value={formData.address}
-              onChange={handleInputChange}
-              required
-              className="w-full p-2 border border-gray-300 rounded-md"
-            >
-              <option value="">Select a city</option>
-              {indianCities.map(city => (
-                <option key={city.name} value={city.name}>{city.name}</option>
-              ))}
-            </select>
-          </div>
-          <div>
-            <label className="block text-sm font-medium mb-1">Contact Email</label>
-            <input
-              type="email"
-              name="contact"
-              value={formData.contact}
-              onChange={handleInputChange}
-              required
-              className="w-full p-2 border border-gray-300 rounded-md"
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium mb-1">Interests (comma separated)</label>
-            <input
-              type="text"
-              name="interests"
-              value={formData.interests}
-              onChange={handleInputChange}
-              required
-              className="w-full p-2 border border-gray-300 rounded-md"
-            />
-          </div>
-          <div className="flex space-x-2">
+
+          <div className="flex flex-col sm:flex-row gap-3 pt-4">
             <button
               type="submit"
-              className="px-4 py-2 bg-black text-white rounded hover:bg-gray-800 text-sm"
+              className="px-4 py-2 text-sm md:text-base bg-gray-800 text-white rounded hover:bg-gray-700 flex-1"
             >
               {isEditing ? 'Update Profile' : 'Add Profile'}
             </button>
             {isEditing && (
               <button
                 type="button"
-                onClick={() => {
-                  setFormData({
-                    id: '',
-                    name: '',
-                    photo: '',
-                    description: '',
-                    address: '',
-                    contact: '',
-                    interests: ''
-                  });
-                  setImageFile(null);
-                  setUploadType('url');
-                  setIsEditing(false);
-                }}
-                className="px-4 py-2 border border-gray-300 rounded hover:bg-gray-50 text-sm"
+                onClick={resetForm}
+                className="px-4 py-2 text-sm md:text-base border border-gray-300 rounded hover:bg-gray-50 flex-1"
               >
                 Cancel
               </button>
@@ -310,55 +327,76 @@ const AdminPanel = () => {
         </form>
       </div>
 
-      <div className="rounded-lg border border-gray-200 p-6">
-        <h2 className="text-lg font-medium mb-4">Manage Profiles</h2>
+      <div className="rounded-lg border border-gray-300 p-4 md:p-6 max-w-6xl mx-auto bg-white">
+        <h2 className="text-lg md:text-xl font-medium mb-4">Manage Profiles</h2>
+        
         <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead>
+          <table className="min-w-full divide-y divide-gray-300">
+            <thead className="bg-gray-100">
               <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Address</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                <th scope="col" className="px-4 py-3 text-left text-xs md:text-sm font-medium uppercase tracking-wider">
+                  Profile
+                </th>
+                <th scope="col" className="px-4 py-3 text-left text-xs md:text-sm font-medium uppercase tracking-wider">
+                  Location
+                </th>
+                <th scope="col" className="px-4 py-3 text-left text-xs md:text-sm font-medium uppercase tracking-wider">
+                  Actions
+                </th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-200">
-              {profiles.map(profile => (
-                <tr key={profile.id}>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="flex items-center">
-                      <div className="flex-shrink-0 h-10 w-10">
-                        <img className="h-10 w-10 rounded-full object-cover" src={profile.photo} alt={profile.name} />
+            <tbody className="divide-y divide-gray-300">
+              {profiles.length > 0 ? (
+                profiles.map(profile => (
+                  <tr key={profile.id} className="hover:bg-gray-50">
+                    <td className="px-4 py-4 whitespace-nowrap">
+                      <div className="flex items-center">
+                        <div className="flex-shrink-0 h-10 w-10">
+                          <img 
+                            className="h-10 w-10 rounded-full object-cover border border-gray-300" 
+                            src={profile.photo} 
+                            alt={profile.name} 
+                            onError={(e) => {
+                              e.target.src = 'https://via.placeholder.com/40';
+                              e.target.onerror = null;
+                            }}
+                          />
+                        </div>
+                        <div className="ml-4">
+                          <div className="text-sm md:text-base font-medium">{profile.name}</div>
+                          <div className="text-xs md:text-sm text-gray-600 line-clamp-1">{profile.description}</div>
+                        </div>
                       </div>
-                      <div className="ml-4">
-                        <div className="text-sm font-medium">{profile.name}</div>
-                        <div className="text-sm text-gray-500 line-clamp-1">{profile.description}</div>
+                    </td>
+                    <td className="px-4 py-4 whitespace-nowrap text-sm md:text-base">
+                      {profile.address}
+                    </td>
+                    <td className="px-4 py-4 whitespace-nowrap text-sm md:text-base">
+                      <div className="flex space-x-3">
+                        <button
+                          onClick={() => handleEdit(profile)}
+                          className="text-black"
+                        >
+                          Edit
+                        </button>
+                        <span className="text-gray-400">|</span>
+                        <button
+                          onClick={() => handleDelete(profile)}
+                          className="text-red-700"
+                        >
+                          Delete
+                        </button>
                       </div>
-                    </div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{profile.address}</td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                    <button
-                      onClick={() => handleEdit(profile)}
-                      className="text-gray-600 hover:text-gray-900 mr-4"
-                    >
-                      Edit
-                    </button>
-                    <button
-                      onClick={() => {
-                        deleteProfile(profile.id);
-                        setToast({
-                          show: true,
-                          message: `Profile for ${profile.name} deleted successfully!`,
-                          type: 'delete'
-                        });
-                      }}
-                      className="text-red-600 hover:text-red-900"
-                    >
-                      Delete
-                    </button>
+                    </td>
+                  </tr>
+                ))
+              ) : (
+                <tr>
+                  <td colSpan="3" className="px-4 py-6 text-center text-gray-600">
+                    No profiles found. Add your first profile above.
                   </td>
                 </tr>
-              ))}
+              )}
             </tbody>
           </table>
         </div>

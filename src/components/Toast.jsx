@@ -1,14 +1,13 @@
 import { useEffect } from 'react';
 
 const Toast = ({ message, type, onClose }) => {
-  // Define colors based on type
+
   const bgColor =
     type === 'success' ? 'bg-black text-white' :
     type === 'error' ? 'bg-gray-800 text-white' :
     type === 'delete' ? 'bg-red-500 text-white' :
-    'bg-gray-900 text-white'; // Default
+    'bg-gray-900 text-white'; 
 
-  // Auto-close the toast after 3 seconds
   useEffect(() => {
     const timer = setTimeout(() => {
       onClose();

@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import HomePage from './pages/HomePage';
 import AdminPage from './pages/AdminPage';
 import ProfilePage from './pages/ProfilePage';
+import ErrorPage from './pages/ErrorPage';  
 import Navbar from './components/Navbar';
 import SiteLoader from './components/SiteLoader';
 
@@ -33,6 +34,7 @@ function App() {
               <Route path="/" element={<HomePage />} />
               <Route path="/admin" element={<AdminPage />} />
               <Route path="/profile/:id" element={<ProfilePage />} />
+              <Route path="*" element={<ErrorPage />} />  
             </Routes>
           </div>
         </div>

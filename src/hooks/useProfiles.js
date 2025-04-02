@@ -1,7 +1,7 @@
 import { useState } from 'react';
 
 const useProfiles = () => {
-  // Function to convert file to base64 image
+
   const convertToBase64 = (file) => {
     return new Promise((resolve, reject) => {
       const fileReader = new FileReader();
@@ -17,16 +17,13 @@ const useProfiles = () => {
     });
   };
 
-  // Handle file input change
   const handleImageUpload = async (file) => {
     if (!file) return null;
-    
-    // Validate file type
+
     if (!file.type.match('image.*')) {
       throw new Error('Please select an image file');
     }
-    
-    // Validate file size (limit to 1MB)
+  
     if (file.size > 1024 * 1024) {
       throw new Error('Image size should be less than 1MB');
     }
@@ -40,7 +37,7 @@ const useProfiles = () => {
     }
   };
 
-  // Function to validate external image URLs
+
   const validateImageUrl = async (url) => {
     if (!url) return false;
     

@@ -19,8 +19,8 @@ const ProfileCard = ({ profile }) => {
   };
   
   return (
-    <div className="bg-gray-50 rounded-lg shadow-lg overflow-hidden transition-transform duration-300 hover:scale-102 border border-gray-200">
-      <div className="h-120 overflow-hidden relative">
+    <div className="bg-gray-50 rounded-lg shadow-lg overflow-hidden transition-transform duration-300 hover:scale-102 border border-gray-200 flex flex-col h-full">
+      <div className="h-64 overflow-hidden relative">
         {imageError ? (
           <div className="w-full h-full flex items-center justify-center bg-gray-200">
             <span className="text-gray-500 font-medium">Image not available</span>
@@ -29,7 +29,7 @@ const ProfileCard = ({ profile }) => {
           <img
             src={profile.photo}
             alt={profile.name}
-            className="w-full h-full object-cover"
+            className="w-full h-full object-contain"
             onError={handleImageError}
             loading="lazy"
           />
@@ -37,7 +37,7 @@ const ProfileCard = ({ profile }) => {
         <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black to-transparent h-24 opacity-70"></div>
         <h3 className="text-xl font-bold text-white absolute bottom-3 left-4 drop-shadow-lg">{profile.name}</h3>
       </div>
-      <div className="p-6">
+      <div className="p-6 flex flex-col flex-grow">
         <p className="text-gray-700 mt-3 line-clamp-2">{profile.description}</p>
         <p className="text-gray-500 text-sm mt-2 flex items-center">
           <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
@@ -46,7 +46,7 @@ const ProfileCard = ({ profile }) => {
           </svg>
           {profile.address}
         </p>
-        <div className="mt-6 flex justify-between">
+        <div className="mt-auto pt-6 flex justify-between">
           <Link
             to={`/profile/${profile.id}`}
             className="px-5 py-2 bg-black text-white rounded hover:bg-gray-800 transition font-medium"
